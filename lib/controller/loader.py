@@ -24,6 +24,8 @@ def loadModule():
 
         if conf.batchfuzz:
             fp, pathname, description = imp.find_module(os.path.splitext(_name)[0], [paths.FUZZ_PATH])
+        elif conf.cmsfuzz:
+            fp, pathname, description = imp.find_module(os.path.splitext(_name)[0], [paths.USE_CMS_PATH])
         else:
             fp, pathname, description = imp.find_module(os.path.splitext(_name)[0], [paths.SCRIPT_PATH])
         try:

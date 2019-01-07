@@ -55,6 +55,7 @@ def EngineRegister(args):
 
     conf.ENGINE = ENGINE_MODE_STATUS.THREAD  # default choice
     conf.batchfuzz = False
+    conf.cmsfuzz = False
 
     msg = 'Use [-eT] to set Multi-Threaded mode or [-eG] to set Coroutine mode.'
     r = Register(mutex=True, start=0, stop=1, mutex_errmsg=msg)
@@ -75,18 +76,39 @@ def loadAllPlugins():
             if '__init__' not in filename and '.pyc' not in filename:
                 conf.MODULE_USE.append(filename)
 
+def loadAllCms(cmsName):
+    conf.cmsfuzz = True
+    for cms_name in os.listdir(paths.CMS_PATH):
+        if '__init__' not in cms_name and '.pyc' not in cms_name:
+            conf.CMS_TYPE.append(cms_name)
+    if cmsName not in conf.CMS_TYPE:
+        msg = 'cmsName error'
+        sys.exit(logger.error(msg))
+    else:
+        paths.USE_CMS_PATH = os.path.join(paths.CMS_PATH, cmsName)
+        for dirpath, dirnames, filenames in os.walk(os.path.join(paths.USE_CMS_PATH)):
+            for filename in filenames:
+                if '__init__' not in filename and '.pyc' not in filename:
+                    conf.MODULE_USE.append(filename)
+
+
 def ScriptRegister(args):
     input_path = args.script_name
     batch = args.batch
     conf.MODULE_USE = []
 
+    cmsType = args.cms
+    conf.CMS_TYPE = []
+
     # handle input: nothing
-    if not (input_path or batch):
+    if not (input_path or batch or cmsType):
         msg = 'Use -s to load script. Example: [-s spider] or [-s ./script/spider.py]'
         sys.exit(logger.error(msg))
 
     if batch:
         loadAllPlugins()
+    elif cmsType:
+        loadAllCms(cmsType)
 
     # handle input: "-s ./script/spider.py"
     if input_path:
